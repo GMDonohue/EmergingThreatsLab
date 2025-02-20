@@ -8,38 +8,41 @@ provider:
   environment:
     AWS_REGION: us-west-1
     DYNAMODB_TABLE_NAME: EmergingThreatsLabData  # Environment variable for table name
+  apiGateway:
+    binaryMediaTypes:
+      - "multipart/form-data" # accepts standard binary file uploads 
 
 functions:
-  reportHandler:
-    handler: functions/reportHandler.handle  # Lambda function for handling reports
-    environment:
-      DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
-    events:
-      - http:
-          path: reports
-          method: post
-          cors: true
-          # Trigger: POST request to /reports (submitting new reports)
+  # reportHandler:
+  #   handler: functions/reportHandler.{insert function name here}  # Lambda function for handling reports
+  #   environment:
+  #     DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
+  #   events:
+  #     - http:
+  #         path: reports
+  #         method: post
+  #         cors: true
+  #         # Trigger: POST request to /reports (submitting new reports)
 
-  urlAnalysisHandler:
-    handler: functions/urlAnalysisHandler.handle
-    events:
-      - http:
-          path: analyze-url
-          method: post
-          cors: true
-          # Trigger: POST request to /analyze-url (analyzing URLs)
+  # urlAnalysisHandler:
+  #   handler: functions/urlAnalysisHandler.{insert function name here}
+  #   events:
+  #     - http:
+  #         path: analyze-url
+  #         method: post
+  #         cors: true
+  #         # Trigger: POST request to /analyze-url (analyzing URLs)
 
-  ocrHandler:
-    handler: functions/ocrHandler.handle
-    events:
-      - http:
-          path: ocr
-          method: post
-          cors: true
-          # Trigger: POST request to /ocr (OCR processing for screenshots)
+  # ocrHandler:
+  #   handler: functions/ocrHandler.{insert function name here}
+  #   events:
+  #     - http:
+  #         path: ocr
+  #         method: post
+  #         cors: true
+  #         # Trigger: POST request to /ocr (OCR processing for screenshots)
   uploadHandler:
-    handler: functions/uploadHander.handle
+    handler: functions/uploadHander.uploadImage
     events:
       - http:
         path: upload
@@ -51,7 +54,7 @@ resources:
     UploadsS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: PhishingImageBucket
+        BucketName: emerging-threats-image-bucket
 
 # create roles here - attach lambda functions to these roles
 iamRoleStatements:

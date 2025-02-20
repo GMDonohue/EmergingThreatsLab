@@ -1,32 +1,38 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';  // Updated import for SDK v3
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import dotenv from 'dotenv';
-dotenv.config();
 
-const s3 = new S3Client({ region: 'us-west-1' }); // Initialize S3Client with region
+dotenv.config();
+const s3 = new S3Client({ region: 'us-west-1' });
 
 export async function uploadImage(event) {
-  const file = event.body.file;  // base64 string passed in the event body
-  console.log(process.env.S3_BUCKET_NAME);
+  console.log('Event:', event);
+
+  // API Gateway sends the binary file as a base64 string in event.body
+  if (!event.body) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'No file uploaded' }),
+    };
+  }
+
+  // Decode the base64 string into a buffer
+  const fileBuffer = Buffer.from(event.body, 'base64');
+  const fileType = event.headers['Content-Type'] || 'image/png'; // Get the MIME type from headers
+  const fileName = `uploads/${Date.now()}_uploaded_file.png`;
+
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: fileName,
+    Body: fileBuffer,
+    ContentType: fileType,
+    ACL: 'bucket-owner-full-control', // Adjust permissions as needed
+  };
 
   try {
-    const buffer = Buffer.from(file, 'base64');  // Convert base64 to binary
-
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: `uploads/${Date.now()}_image.png`,  // Unique file name
-      Body: buffer,
-      ContentType: 'image/png',
-      ACL: 'bucket-owner-full-control',
-    };
-
-    // Use the new command method in v3
-    const command = new PutObjectCommand(params);
-    const s3Response = await s3.send(command); // s3.send() to execute the upload
-    const s3Key = s3Response.Key;  // Return the S3 key for further processing
-
+    await s3.send(new PutObjectCommand(params));
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Image uploaded successfully', s3Key: s3Key }),
+      body: JSON.stringify({ message: 'Image uploaded successfully', s3Key: fileName }),
     };
   } catch (error) {
     console.error('Error uploading image:', error);
