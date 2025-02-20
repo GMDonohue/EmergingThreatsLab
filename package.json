@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express.js": "^1.0.0",
+    "tesseract.js": "^6.0.0",
+    "whois": "^2.14.2"
+  }
 }
