@@ -1,0 +1,129 @@
+{
+  "C:\\Users\\gmd14\\dynamodb-project\\serverless.yml": {
+    "versionFramework": "4.6.3",
+    "servicePath": "C:\\Users\\gmd14\\dynamodb-project\\serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "smishing-archiving-api",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs14.x",
+        "region": "us-west-1",
+        "stage": "dev",
+        "environment": {
+          "AWS_REGION": "us-west-1",
+          "DYNAMODB_TABLE_NAME": "EmergingThreatsLabData"
+        }
+      },
+      "functions": {
+        "reportHandler": {
+          "handler": "functions/reportHandler.handle",
+          "events": [
+            {
+              "http": {
+                "path": "reports",
+                "method": "post",
+                "cors": true
+              }
+            }
+          ]
+        },
+        "urlAnalysisHandler": {
+          "handler": "functions/urlAnalysisHandler.handle",
+          "events": [
+            {
+              "http": {
+                "path": "analyze-url",
+                "method": "post",
+                "cors": true
+              }
+            }
+          ]
+        },
+        "ocrHandler": {
+          "handler": "functions/ocrHandler.handle",
+          "events": [
+            {
+              "http": {
+                "path": "ocr",
+                "method": "post",
+                "cors": true
+              }
+            }
+          ]
+        },
+        "uploadHandler": {
+          "handler": "functions/uploadHander.handle",
+          "events": [
+            {
+              "http": null,
+              "path": "upload",
+              "method": "post",
+              "cors": true
+            }
+          ]
+        }
+      },
+      "resources": {
+        "Resources": {
+          "UploadsS3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "PhishingImageBucket"
+            }
+          }
+        }
+      },
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:PutItem",
+            "dynamodb:Query",
+            "dynamodb:UpdateItem"
+          ],
+          "Resource": "arn:aws:dynamodb:us-west-1:*:table/${env:DYNAMODB_TABLE_NAME}"
+        }
+      ],
+      "licenseKey": "${ssm:/serverless-framework/license-key}"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs14.x",
+      "region": "us-west-1",
+      "stage": "dev",
+      "environment": {
+        "AWS_REGION": "us-west-1",
+        "DYNAMODB_TABLE_NAME": "EmergingThreatsLabData"
+      }
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": true,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "error": {
+      "message": "Cannot resolve '${env:DYNAMODB_TABLE_NAME}' variable at 'iamRoleStatements.0.Resource'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.",
+      "stack": "Error: Cannot resolve '${env:DYNAMODB_TABLE_NAME}' variable at 'iamRoleStatements.0.Resource'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.\n    at _ResolverManager.resolve (file:///C:/Users/gmd14/.serverless/releases/4.6.3/package/dist/sf-core.js:1173:32559)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async #handlePlaceholderNode (file:///C:/Users/gmd14/.serverless/releases/4.6.3/package/dist/sf-core.js:1173:30766)\n    at async file:///C:/Users/gmd14/.serverless/releases/4.6.3/package/dist/sf-core.js:1173:28628\n    at async processNodeAndHandleCompletion (file:///C:/Users/gmd14/.serverless/releases/4.6.3/package/dist/sf-core.js:1173:17338)",
+      "code": "MISSING_VARIABLE_RESULT"
+    },
+    "serviceRawFile": "service: smishing-archiving-api\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs14.x  # Node.js runtime version\r\n  region: us-west-1    # AWS region for Lambda functions\r\n  stage: dev           # Stage (can be dev, prod, etc.)\r\n  environment:\r\n    AWS_REGION: us-west-1\r\n    DYNAMODB_TABLE_NAME: EmergingThreatsLabData  # Environment variable for table name\r\n\r\nfunctions:\r\n  reportHandler:\r\n    handler: functions/reportHandler.handle  # Lambda function for handling reports\r\n    events:\r\n      - http:\r\n          path: reports\r\n          method: post\r\n          cors: true\r\n          # Trigger: POST request to /reports (submitting new reports)\r\n\r\n  urlAnalysisHandler:\r\n    handler: functions/urlAnalysisHandler.handle\r\n    events:\r\n      - http:\r\n          path: analyze-url\r\n          method: post\r\n          cors: true\r\n          # Trigger: POST request to /analyze-url (analyzing URLs)\r\n\r\n  ocrHandler:\r\n    handler: functions/ocrHandler.handle\r\n    events:\r\n      - http:\r\n          path: ocr\r\n          method: post\r\n          cors: true\r\n          # Trigger: POST request to /ocr (OCR processing for screenshots)\r\n  uploadHandler:\r\n    handler: functions/uploadHander.handle\r\n    events:\r\n      - http:\r\n        path: upload\r\n        method: post\r\n        cors: true\r\nresources:\r\n  # No DynamoDB table creation here since it's already created manually\r\n  Resources:\r\n    UploadsS3Bucket:\r\n      Type: AWS::S3::Bucket\r\n      Properties:\r\n        BucketName: PhishingImageBucket\r\n\r\niamRoleStatements:\r\n  - Effect: Allow\r\n    Action:\r\n      - dynamodb:PutItem\r\n      - dynamodb:Query\r\n      - dynamodb:UpdateItem\r\n    Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_NAME}\r\n",
+    "command": [
+      "deploy"
+    ],
+    "options": {},
+    "orgId": "ab4c854a-9e86-491d-ab7d-8aba02ef9526",
+    "orgName": "csusmemergingthreatslab",
+    "userId": "RNvwSNRX3DBcdD8pWP",
+    "userName": "csusmemergingthreatslab",
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}
