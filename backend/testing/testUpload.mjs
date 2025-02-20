@@ -6,6 +6,8 @@ dotenv.config({path:'../.env'});
 // Hardcoded path to the test_base64.txt file
 const base64Data = readFileSync('./test_base64.txt', 'utf-8');
 
+// TODO: add necessary get request 
+
 // Make sure base64 string is loaded correctly
 //console.log(base64Data);
 
