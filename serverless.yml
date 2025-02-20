@@ -1,0 +1,68 @@
+service: smishing-archiving-api
+
+provider:
+  name: aws
+  runtime: nodejs14.x  # Node.js runtime version
+  region: us-west-1    # AWS region for Lambda functions
+  stage: dev           # Stage (can be dev, prod, etc.)
+  environment:
+    AWS_REGION: us-west-1
+    DYNAMODB_TABLE_NAME: EmergingThreatsLabData  # Environment variable for table name
+
+functions:
+  reportHandler:
+    handler: functions/reportHandler.handle  # Lambda function for handling reports
+    environment:
+      DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
+    events:
+      - http:
+          path: reports
+          method: post
+          cors: true
+          # Trigger: POST request to /reports (submitting new reports)
+
+  urlAnalysisHandler:
+    handler: functions/urlAnalysisHandler.handle
+    events:
+      - http:
+          path: analyze-url
+          method: post
+          cors: true
+          # Trigger: POST request to /analyze-url (analyzing URLs)
+
+  ocrHandler:
+    handler: functions/ocrHandler.handle
+    events:
+      - http:
+          path: ocr
+          method: post
+          cors: true
+          # Trigger: POST request to /ocr (OCR processing for screenshots)
+  uploadHandler:
+    handler: functions/uploadHander.handle
+    events:
+      - http:
+        path: upload
+        method: post
+        cors: true
+resources:
+  # No DynamoDB table creation here since it's already created manually
+  Resources:
+    UploadsS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: PhishingImageBucket
+
+# create roles here - attach lambda functions to these roles
+iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - dynamodb:PutItem
+      - dynamodb:Query
+      - dynamodb:UpdateItem
+    Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_NAME}
+  - Effect: Allow
+    Action:
+      - s3:PutObject
+      - s3:GetObject
+    Resource: arn:aws:s3:::emerging-threats-image-bucket/*
