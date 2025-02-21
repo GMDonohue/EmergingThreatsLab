@@ -1,3 +1,5 @@
+// not currently needed 
+
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import dotenv from 'dotenv';
 
@@ -17,7 +19,7 @@ export async function uploadImage(event) {
 
   // Decode the base64 string into a buffer
   const fileBuffer = Buffer.from(event.body, 'base64');
-  const fileType = event.headers['Content-Type'] || 'image/png'; // Get the MIME type from headers
+  const fileType = event.headers['Content-Type'] || 'image/png';
   const fileName = `uploads/${Date.now()}_uploaded_file.png`;
 
   const params = {
@@ -25,7 +27,7 @@ export async function uploadImage(event) {
     Key: fileName,
     Body: fileBuffer,
     ContentType: fileType,
-    ACL: 'bucket-owner-full-control', // Adjust permissions as needed
+    ACL: 'bucket-owner-full-control',
   };
 
   try {
