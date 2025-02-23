@@ -47,8 +47,7 @@ async function getWhoisData(url) {
         } catch (error) {
             console.error(`Failed to fetch IPs for ${domain}:`, error);
         }
-
-        return { whoisData, ips };
+        return { whoisData: data, ips };
     } catch (error) {
         console.error(`Error fetching WHOIS data for ${url}:`, error);
         throw error;
@@ -56,6 +55,10 @@ async function getWhoisData(url) {
 }
 
 async function parseWhoisData(whoisData, ips) {
+    if (!whoisData) {
+        throw new Error("WHOIS data is undefined");
+    }
+
     const fields = {
         name: whoisData.match(/Domain Name: (.+)/i)?.[1]?.trim(),
         nameServers: whoisData
@@ -104,7 +107,7 @@ exports.handler = async (event) => {
             }
         }
 
-        const imageId = uuidv4();
+        //const imageId = uuidv4();
         //await saveToDynamoDB(imageId, imageBytes, whoisResults);
 
         return {

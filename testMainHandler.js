@@ -1,7 +1,7 @@
 const { handler } = require("./backend/functions/mainHandler");
 const fs = require("fs");
 const imageBase64 = fs.readFileSync("test.png", "base64");
-console.log(imageBase64);
+
 const event = {
     body: JSON.stringify({
         image: imageBase64,
