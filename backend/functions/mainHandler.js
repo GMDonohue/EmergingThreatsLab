@@ -4,8 +4,9 @@ const whois = require("whois");
 const { v4: uuidv4 } = require("uuid");
 
 const textract = new AWS.Textract({ region: "us-west-1" });
-const dynamodb = new AWS.DynamoDB.DocumentClient();
-const s3 = new AWS.S3();
+const dynamoDb = new AWS.DynamoDB.DocumentClient();
+
+const TABLE_NAME = "EmergingThreatsLabData";
 
 // Helper functions
 async function extractTextFromImage(imageBytes) {
@@ -15,7 +16,9 @@ async function extractTextFromImage(imageBytes) {
         };
         const response = await textract.detectDocumentText(params).promise();
 
-        const text = response.Blocks.filter((block) => block.BlockType === "LINE")
+        const text = response.Blocks.filter(
+            (block) => block.BlockType === "LINE"
+        )
             .map((block) => block.Text)
             .join("\n");
 
@@ -54,12 +57,13 @@ async function getWhoisData(url) {
     }
 }
 
-async function parseWhoisData(whoisData, ips) {
+async function parseWhoisData(whoisData, ips, urls, text) {
     if (!whoisData) {
         throw new Error("WHOIS data is undefined");
     }
 
     const fields = {
+        urls: urls,
         name: whoisData.match(/Domain Name: (.+)/i)?.[1]?.trim(),
         nameServers: whoisData
             .match(/Name Server: (.+)/gi)
@@ -72,21 +76,40 @@ async function parseWhoisData(whoisData, ips) {
         updatedDate: whoisData
             .match(/(Updated Date|Last Updated On): (.+)/i)?.[2]
             ?.trim(),
+        rawText: text,
     };
     return fields;
 }
 
-async function saveToDynamoDB(imageId, imageBytes, whoisResults) {
-    // Save data to DynamoDB
+async function saveToDynamoDB(imageId, whoisResults) {
+    try {
+        // Prepare data for DynamoDB
+        const dynamoParams = {
+            TableName: TABLE_NAME,
+            Item: {
+                imageId: imageId, // Unique identifier for the record
+                whoisResults: whoisResults, // JSON object containing WHOIS data
+                createdAt: new Date().toISOString(), // Timestamp for when the record was created
+            },
+        };
+
+        // Save data to DynamoDB
+        await dynamoDb.put(dynamoParams).promise();
+
+        console.log("Data saved successfully to DynamoDB:", imageId);
+        return { success: true, imageId };
+    } catch (error) {
+        console.error("Error saving data to DynamoDB:", error);
+        throw error;
+    }
 }
 
 function getUrlFromText(text) {
     const urlRe = /https?:\/\/[^\s]+\.[^\s\.]+/g;
+    //(https?:\/\/)?[^\s]+\.[^\s\.]+
     const urls = text.match(urlRe) || [];
     return urls;
 }
-
-
 
 exports.handler = async (event) => {
     try {
@@ -100,15 +123,25 @@ exports.handler = async (event) => {
         for (const url of urls) {
             try {
                 const { whoisData, ips } = await getWhoisData(url);
-                const parsedWhoisData = await parseWhoisData(whoisData, ips);
+                const parsedWhoisData = await parseWhoisData(
+                    whoisData,
+                    ips,
+                    urls,
+                    text
+                );
                 whoisResults.push(parsedWhoisData);
             } catch (error) {
                 console.error(`Failed to process ${url}:`, error);
             }
         }
 
-        //const imageId = uuidv4();
-        //await saveToDynamoDB(imageId, imageBytes, whoisResults);
+        const imageId = uuidv4();
+        try {
+            const result = await saveToDynamoDB(imageId, whoisResults);
+            console.log(result);
+        } catch (error) {
+            console.error("Error:", error);
+        }
 
         return {
             statusCode: 200,
