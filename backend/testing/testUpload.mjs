@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { uploadImage } from '../functions/uploadHandler.js'; // Import the uploadImage function
+import { uploadImage } from '../functions/publicUploadHandler.js'; // Import the uploadImage function
 import dotenv from 'dotenv'
 dotenv.config({path:'../.env'});
 

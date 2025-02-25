@@ -2,70 +2,113 @@ service: smishing-archiving-api
 
 provider:
   name: aws
-  runtime: nodejs14.x  # Node.js runtime version
-  region: us-west-1    # AWS region for Lambda functions
-  stage: dev           # Stage (can be dev, prod, etc.)
+  runtime: nodejs18.x
+  region: us-west-1
+  stage: dev 
   environment:
-    AWS_REGION: us-west-1
-    DYNAMODB_TABLE_NAME: EmergingThreatsLabData  # Environment variable for table name
+    DYNAMODB_TABLE_NAME: EmergingThreatsLabData
+    S3_BUCKET_NAME: emerging-threats-image-bucket
   apiGateway:
     binaryMediaTypes:
-      - "multipart/form-data" # accepts standard binary file uploads 
+      - multipart/form-data
+    apiKeys: 
+      - APIPhishingKey
+  versionFunctions: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Scan
+            - dynamodb:Query
+            - s3:PutObject
+            - s3:PutObjectAcl
+            - s3:GetObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:dynamodb:us-west-1:*:table/EmergingThreatsLabData
+            - arn:aws:s3:::emerging-threats-image-bucket
+            - arn:aws:s3:::emerging-threats-image-bucket/*
 
 functions:
-  # reportHandler:
-  #   handler: functions/reportHandler.{insert function name here}  # Lambda function for handling reports
-  #   environment:
-  #     DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
-  #   events:
-  #     - http:
-  #         path: reports
-  #         method: post
-  #         cors: true
-  #         # Trigger: POST request to /reports (submitting new reports)
-
-  # urlAnalysisHandler:
-  #   handler: functions/urlAnalysisHandler.{insert function name here}
-  #   events:
-  #     - http:
-  #         path: analyze-url
-  #         method: post
-  #         cors: true
-  #         # Trigger: POST request to /analyze-url (analyzing URLs)
-
-  # ocrHandler:
-  #   handler: functions/ocrHandler.{insert function name here}
-  #   events:
-  #     - http:
-  #         path: ocr
-  #         method: post
-  #         cors: true
-  #         # Trigger: POST request to /ocr (OCR processing for screenshots)
   uploadHandler:
-    handler: functions/uploadHander.uploadImage
+    handler: backend/functions/publicUploadHandler.uploadImage
     events:
       - http:
-        path: upload
-        method: post
-        cors: true
+          path: upload
+          method: post
+          cors: true
+          private: true
+
+  privateUploadHandler:
+    handler: backend/functions/privateUploadHandler.uploadImage
+    events:
+      - http:
+          path: private-upload
+          method: post
+          cors: true
+
 resources:
-  # No DynamoDB table creation here since it's already created manually
   Resources:
+    # S3 bucket configuration
     UploadsS3Bucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: emerging-threats-image-bucket
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+              AllowedHeaders:
+                - "*"
 
-# create roles here - attach lambda functions to these roles
-iamRoleStatements:
-  - Effect: Allow
-    Action:
-      - dynamodb:PutItem
-      - dynamodb:Query
-      - dynamodb:UpdateItem
-    Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_NAME}
-  - Effect: Allow
-    Action:
-      - s3:PutObject
-      - s3:GetObject
-    Resource: arn:aws:s3:::emerging-threats-image-bucket/*
+    UploadsS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: emerging-threats-image-bucket
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: arn:aws:iam::688567304941:role/smishing-archiving-api-dev-us-west-1-lambdaRole
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+              Resource: "arn:aws:s3:::emerging-threats-image-bucket/*"
+
+    # # The API Key and Usage Plan are managed by Serverless
+    # ApiGatewayApiKey:
+    #   Type: AWS::ApiGateway::ApiKey  
+    #   Properties:
+    #     Name: 'APIPhishingKey'
+    #     Enabled: true
+    #     StageKeys:
+    #       - RestApiId: !Ref ApiGatewayRestApi
+    #         StageName: dev
+
+    # ApiGatewayUsagePlan:
+    #   Type: AWS::ApiGateway::UsagePlan  
+    #   Properties:
+    #     UsagePlanName: 'ImageUploadUsagePlan'
+    #     ApiStages:
+    #       - ApiId: !Ref ApiGatewayRestApi
+    #         Stage: dev
+    #     Throttle:
+    #       BurstLimit: 100
+    #       RateLimit: 50
+    #     Quota:
+    #       Limit: 10000
+    #       Period: MONTH
+
+    # ApiGatewayUsagePlanKey:
+    #   Type: AWS::ApiGateway::UsagePlanKey
+    #   Properties:
+    #     KeyId: !Ref ApiGatewayApiKey
+    #     KeyType: API_KEY
+    #     UsagePlanId: !Ref ApiGatewayUsagePlan
