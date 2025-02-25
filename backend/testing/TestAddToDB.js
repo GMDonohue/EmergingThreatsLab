@@ -5,9 +5,9 @@ const client = new DynamoDBClient({ region: "us-west-1" });
 
 // Define the item to add
 const params = {
-  TableName: "EmergingThreatsLabData",  // Change this to your actual table name
+  TableName: "EmergingThreatsLabData",  
   Item: {
-    "messageID": { N: "1" },  // Unique partition key
+    "messageID": { N: "1" },  // Unique key
     "message": { N: "1" },
     "timeSubmitted": { N: "1629496561000" },
     "sender": { S: "John Doe" },
