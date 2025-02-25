@@ -1,3 +1,5 @@
 node_modules
 .env
 whois.d.ts
+ztest*
+z_test*

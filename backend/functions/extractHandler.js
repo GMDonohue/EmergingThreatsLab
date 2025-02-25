@@ -1,14 +1,23 @@
-import { recognize } from "tesseract.js";
-import { lookup } from "whois";
-import { writeFile } from "fs";
+const AWS = require("aws-sdk");
+const whois = require("whois");
+const fs = require("fs");
+
+
+const textract = new AWS.Textract({ region: "us-west-1" });
 
 async function readTextFromImage(imagePath) {
     try {
-        const {
-            data: { text },
-        } = await recognize(imagePath, "eng", {
-            logger: (e) => console.log(e),
-        });
+        const imageBytes = fs.readFileSync(imagePath);
+
+        const params = {
+            Document: { Bytes: imageBytes },
+        };
+        const response = await textract.detectDocumentText(params).promise();
+
+        const text = response.Blocks.filter((block) => block.BlockType === "LINE")
+            .map((block) => block.Text)
+            .join("\n");
+
         return text;
     } catch (error) {
         console.error("Error during OCR:", error);
@@ -27,30 +36,30 @@ async function getWhoisData(url) {
         const domain = new URL(url).hostname;
 
         const data = await new Promise((resolve, reject) => {
-            lookup(domain, (err, data) => {
+            whois.lookup(domain, (err, data) => {
                 if (err) reject(err);
                 else resolve(data);
             });
         });
-        writeFile("test.txt", data, (err) => {
-            if (err) throw err;
-        });
-        return data;
+
     } catch (error) {
         console.error(`Error fetching WHOIS data for ${url}:`, error);
         throw error;
     }
 }
-async function getIpFromWhois(whoisData){
-    const domainName=whoisData.match(/Domain Name: (.+)/i)?.[1]?.trim();
+
+
+async function getIpFromWhois(whoisData) {
+    const domainName = whoisData.match(/Domain Name: (.+)/i)?.[1]?.trim();
     let response = await fetch(`https://dns.google/resolve?name=${domainName}`);
     let json = await response.json();
-    let ips=[];
-    for(const elem of json['Answer']){
-        ips.push(elem['data']);
+    let ips = [];
+    for (const elem of json["Answer"]) {
+        ips.push(elem["data"]);
     }
-    return ips
+    return ips;
 }
+
 async function parseWhoisData(whoisData) {
     let ips = await getIpFromWhois(whoisData);
     const fields = {
