@@ -148,7 +148,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-1-7b881650-2987",
-                "S3Key": "serverless/smishing-archiving-api/dev/1740382041168-2025-02-24T07:27:21.168Z/smishing-archiving-api.zip"
+                "S3Key": "serverless/smishing-archiving-api/dev/1740444893467-2025-02-25T00:54:53.467Z/smishing-archiving-api.zip"
               },
               "Handler": "backend/functions/publicUploadHandler.uploadImage",
               "Runtime": "nodejs18.x",
@@ -177,7 +177,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-1-7b881650-2987",
-                "S3Key": "serverless/smishing-archiving-api/dev/1740382041168-2025-02-24T07:27:21.168Z/smishing-archiving-api.zip"
+                "S3Key": "serverless/smishing-archiving-api/dev/1740444893467-2025-02-25T00:54:53.467Z/smishing-archiving-api.zip"
               },
               "Handler": "backend/functions/privateUploadHandler.uploadImage",
               "Runtime": "nodejs18.x",
@@ -201,24 +201,24 @@
               "PrivateUploadHandlerLogGroup"
             ]
           },
-          "UploadHandlerLambdaVersionAvJIjRFLUxDNBkR49wmqnq5y0pAWFHkfZD7cjmtdc": {
+          "UploadHandlerLambdaVersionmUBRdOrq67pxtYigAohRlvvVqyZwi6m5Ypx0q310": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "UploadHandlerLambdaFunction"
               },
-              "CodeSha256": "rVhtBNiHycCUDg9krg3MG8PVf3eRv9fj9wZfW+muEO0="
+              "CodeSha256": "aDFl1Gpdv251YfQmn7TDX0Jv3FQ+zAcR29JAV5XJPls="
             }
           },
-          "PrivateUploadHandlerLambdaVersionaTiXdZskcwC5E9Tr32jDyKZRqq8t2BORNZptDRmG0": {
+          "PrivateUploadHandlerLambdaVersionfkaEgTy8AYOELEcb4sbRBCSsOuUkoPyOrY6295zeM6I": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "PrivateUploadHandlerLambdaFunction"
               },
-              "CodeSha256": "rVhtBNiHycCUDg9krg3MG8PVf3eRv9fj9wZfW+muEO0="
+              "CodeSha256": "aDFl1Gpdv251YfQmn7TDX0Jv3FQ+zAcR29JAV5XJPls="
             }
           },
           "ApiGatewayRestApi": {
@@ -448,7 +448,7 @@
               "PrivateUploadHandlerLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1740382031529": {
+          "ApiGatewayDeployment1740444881720": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -477,11 +477,11 @@
                 }
               ]
             },
-            "DependsOn": "ApiGatewayDeployment1740382031529"
+            "DependsOn": "ApiGatewayDeployment1740444881720"
           },
           "ApiGatewayUsagePlan": {
             "Type": "AWS::ApiGateway::UsagePlan",
-            "DependsOn": "ApiGatewayDeployment1740382031529",
+            "DependsOn": "ApiGatewayDeployment1740444881720",
             "Properties": {
               "ApiStages": [
                 {
@@ -636,7 +636,7 @@
           "UploadHandlerLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "UploadHandlerLambdaVersionAvJIjRFLUxDNBkR49wmqnq5y0pAWFHkfZD7cjmtdc"
+              "Ref": "UploadHandlerLambdaVersionmUBRdOrq67pxtYigAohRlvvVqyZwi6m5Ypx0q310"
             },
             "Export": {
               "Name": "sls-smishing-archiving-api-dev-UploadHandlerLambdaFunctionQualifiedArn"
@@ -645,7 +645,7 @@
           "PrivateUploadHandlerLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "PrivateUploadHandlerLambdaVersionaTiXdZskcwC5E9Tr32jDyKZRqq8t2BORNZptDRmG0"
+              "Ref": "PrivateUploadHandlerLambdaVersionfkaEgTy8AYOELEcb4sbRBCSsOuUkoPyOrY6295zeM6I"
             },
             "Export": {
               "Name": "sls-smishing-archiving-api-dev-PrivateUploadHandlerLambdaFunctionQualifiedArn"
@@ -718,7 +718,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "UploadHandlerLambdaVersionAvJIjRFLUxDNBkR49wmqnq5y0pAWFHkfZD7cjmtdc"
+        "versionLogicalId": "UploadHandlerLambdaVersionmUBRdOrq67pxtYigAohRlvvVqyZwi6m5Ypx0q310"
       },
       "privateUploadHandler": {
         "handler": "backend/functions/privateUploadHandler.uploadImage",
@@ -754,7 +754,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "PrivateUploadHandlerLambdaVersionaTiXdZskcwC5E9Tr32jDyKZRqq8t2BORNZptDRmG0"
+        "versionLogicalId": "PrivateUploadHandlerLambdaVersionfkaEgTy8AYOELEcb4sbRBCSsOuUkoPyOrY6295zeM6I"
       }
     },
     "resources": {
@@ -826,7 +826,7 @@
     "artifact": "C:\\Users\\gmd14\\dynamodb-project\\.serverless\\smishing-archiving-api.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/smishing-archiving-api/dev/1740382041168-2025-02-24T07:27:21.168Z",
+    "artifactDirectoryName": "serverless/smishing-archiving-api/dev/1740444893467-2025-02-25T00:54:53.467Z",
     "artifact": "smishing-archiving-api.zip"
   }
 }
