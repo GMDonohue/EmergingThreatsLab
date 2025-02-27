@@ -33,6 +33,15 @@ provider:
             - arn:aws:s3:::emerging-threats-image-bucket/*
 
 functions:
+  mainHandler:
+    handler:
+      backend/functions/mainHandler.handler
+    events:
+      - http:
+          path: upload
+          method: post
+          cors: true
+
   uploadHandler:
     handler: backend/functions/publicUploadHandler.uploadImage
     events:
