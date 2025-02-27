@@ -100,21 +100,21 @@ async function saveToDynamoDB(imageId, whoisResults) {
         // Check the content of whoisResults before processing
         console.log("whoisResults:", JSON.stringify(whoisResults, null, 2));
 
-        // Prepare data for DynamoDB
-        const dynamoParams = {
-            TableName: "EmergingThreatsLabData",
-            Item: {
-                messageID: imageId,  // Unique identifier for this record
-                whoisData: whoisResults.map(result => result.whoisData), // Array of WHOIS data
-                ips: whoisResults.map(result => result.IPAdress), // Array of IPs
-                urls: whoisResults.map(result => result.urls), // Array of URLs
-                text: whoisResults.map(result => {
-                    console.log("Processing result rawText:", result.rawText);
-                    return result.rawText || "none";  // Ensure rawText is not undefined or null
-                }), // Ensure rawText is not undefined or null
-                timeSubmitted: new Date().toISOString(), // Timestamp
-            },
-        };
+// Prepare data for DynamoDB
+const dynamoParams = {
+    TableName: "EmergingThreatsLabData",
+    Item: {
+        messageID: imageId,  // Unique identifier for this record
+        whoisData: whoisResults.length ? whoisResults.map(result => result.whoisData || "none") : ["none"], // Ensure array is not empty
+        ips: whoisResults.length ? whoisResults.map(result => result.IPAdress?.length ? result.IPAdress : ["none"]) : [["none"]], // Handle empty IP arrays
+        urls: whoisResults.length ? whoisResults.map(result => result.urls?.length ? result.urls : ["none"]) : [["none"]], // Handle empty URL arrays
+        text: whoisResults.length ? whoisResults.map(result => {
+            console.log("Processing result rawText:", result.rawText);
+            return result.rawText || "none";  // Ensure rawText is not undefined or null
+        }) : ["none"], // Handle empty `whoisResults`
+        timeSubmitted: new Date().toISOString(), // Timestamp
+    },
+};
 
         console.log("DynamoDB Params:", JSON.stringify(dynamoParams, null, 2)); // Debug log
 
