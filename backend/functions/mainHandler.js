@@ -85,7 +85,7 @@ async function saveToDynamoDB(imageId, whoisResults) {
     try {
         // Prepare data for DynamoDB
         const dynamoParams = {
-            TableName: TABLE_NAME,
+            TableName: process.env.DYNAMODB_TABLE_NAM,
             Item: {
                 imageId: imageId, // Unique identifier for the record
                 whoisResults: whoisResults, // JSON object containing WHOIS data

@@ -19,6 +19,7 @@ export async function uploadImage(event) {
     const contentType = event.headers["content-type"];
 
     return new Promise((resolve, reject) => {
+      // using busboy to parse html form data
       const busboy = new Busboy({ headers: { "content-type": contentType } });
       let fileBuffer = [];
       let fileName = `uploads/${Date.now()}_image.png`;

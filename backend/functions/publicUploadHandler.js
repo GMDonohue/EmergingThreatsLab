@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk'; // Use 'import' instead of 'require'
+import AWS from 'aws-sdk';
 const s3 = new AWS.S3();
 
 export const uploadImage = async (event) => {
