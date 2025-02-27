@@ -33,14 +33,14 @@ provider:
             - arn:aws:s3:::emerging-threats-image-bucket/*
 
 functions:
-  mainHandler:
-    handler:
-      backend/functions/mainHandler.handler
+  dataExtractionHandler:
+    handler: backend/functions/mainHandler.dataExtraction
     events:
       - http:
-          path: upload
+          path: dataExtraction
           method: post
           cors: true
+          private: true
 
   uploadHandler:
     handler: backend/functions/publicUploadHandler.uploadImage
@@ -90,7 +90,7 @@ resources:
                 - s3:PutObject
                 - s3:GetObject
               Resource: "arn:aws:s3:::emerging-threats-image-bucket/*"
-
+    
     # # The API Key and Usage Plan are managed by Serverless
     # ApiGatewayApiKey:
     #   Type: AWS::ApiGateway::ApiKey  

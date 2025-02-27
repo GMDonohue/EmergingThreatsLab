@@ -1,13 +1,13 @@
-const AWS = require("aws-sdk");
-const whois = require("whois");
-const fs = require("fs");
+import { Textract } from "aws-sdk";
+import { lookup } from "whois";
+import { readFileSync } from "fs";
 
 
-const textract = new AWS.Textract({ region: "us-west-1" });
+const textract = new Textract({ region: "us-west-1" });
 
 async function readTextFromImage(imagePath) {
     try {
-        const imageBytes = fs.readFileSync(imagePath);
+        const imageBytes = readFileSync(imagePath);
 
         const params = {
             Document: { Bytes: imageBytes },
@@ -36,7 +36,7 @@ async function getWhoisData(url) {
         const domain = new URL(url).hostname;
 
         const data = await new Promise((resolve, reject) => {
-            whois.lookup(domain, (err, data) => {
+            lookup(domain, (err, data) => {
                 if (err) reject(err);
                 else resolve(data);
             });

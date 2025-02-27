@@ -7,12 +7,14 @@
   },
   "keywords": [],
   "author": "",
+  "type": "module",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.751.0",
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/client-textract": "^3.750.0",
+    "@aws-sdk/lib-dynamodb": "^3.751.0",
     "aws-sdk": "^2.1692.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -21,6 +23,7 @@
     "s3": "^4.4.0",
     "tesseract.js": "^6.0.0",
     "textract": "^2.5.0",
+    "uuid": "^11.1.0",
     "whois": "^2.14.2"
   }
 }

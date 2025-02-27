@@ -34,25 +34,24 @@
                     try {
                         // Send both requests at the same time
                         const [response1, response2] = await Promise.all([
-                            fetch('https://u35ntvtwm0.execute-api.us-west-1.amazonaws.com/dev/upload', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'x-api-key': apiKey
-                                },
-                                body: JSON.stringify({ imageData: base64File }),
-                            }),
-                            // change link to correct endpoint
-                            // fetch('https://u35ntvtwm0.execute-api.us-west-1.amazonaws.com/dev/second-endpoint', {
-                            //     method: 'POST',
-                            //     headers: {
-                            //         'Content-Type': 'application/json',
-                            //         'x-api-key': apiKey
-                            //     },
-                            //     body: JSON.stringify({ imageData: base64File }),
-                            // })
-                        ]);
-    
+                        fetch('https://u35ntvtwm0.execute-api.us-west-1.amazonaws.com/dev/upload', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-api-key': apiKey
+                            },
+                            body: JSON.stringify({ imageData: base64File }),
+                        }),
+                        fetch('https://u35ntvtwm0.execute-api.us-west-1.amazonaws.com/dev/dataExtraction', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-api-key': apiKey
+                            },
+                            body: JSON.stringify({ image: base64File })
+                        })
+                    ]);
+
                         // Convert responses to JSON
                         const data1 = await response1.json();
                         const data2 = await response2.json();

@@ -1,68 +1,73 @@
-// privateUploadHandler.js (private upload with IAM authentication)
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import dotenv from 'dotenv';
-import Busboy from 'busboy';
+// // privateUploadHandler.js (private upload with IAM authentication)
+// const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+// const dotenv = require('dotenv');
+// const Busboy = require('busboy');
 
-dotenv.config();
+// // Initialize environment variables
+// dotenv.config();
 
-const s3 = new S3Client({ region: 'us-west-1' });
+// // Your logic using S3Client, PutObjectCommand, and Busboy
 
-export async function uploadImage(event) {
-  try {
-    if (!event.headers || !event.headers["content-type"]) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: "Missing Content-Type header" }),
-      };
-    }
+// dotenv.config();
 
-    const contentType = event.headers["content-type"];
+// const s3 = new S3Client({ region: 'us-west-1' });
 
-    return new Promise((resolve, reject) => {
-      // using busboy to parse html form data
-      const busboy = new Busboy({ headers: { "content-type": contentType } });
-      let fileBuffer = [];
-      let fileName = `uploads/${Date.now()}_image.png`;
+// export async function uploadImage(event) {
+//   try {
+//     if (!event.headers || !event.headers["content-type"]) {
+//       return {
+//         statusCode: 400,
+//         body: JSON.stringify({ message: "Missing Content-Type header" }),
+//       };
+//     }
 
-      busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
-        file.on("data", (data) => {
-          fileBuffer.push(data);
-        });
+//     const contentType = event.headers["content-type"];
 
-        file.on("end", async () => {
-          const buffer = Buffer.concat(fileBuffer);
+//     return new Promise((resolve, reject) => {
+//       // using busboy to parse html form data
+//       const busboy = new Busboy({ headers: { "content-type": contentType } });
+//       let fileBuffer = [];
+//       let fileName = `uploads/${Date.now()}_image.png`;
 
-          const params = {
-            Bucket: process.env.S3_BUCKET_NAME,
-            Key: fileName,
-            Body: buffer,
-            ContentType: mimetype,
-            ACL: "bucket-owner-full-control",  // adjust ACL if needed for private upload
-          };
+//       busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+//         file.on("data", (data) => {
+//           fileBuffer.push(data);
+//         });
 
-          try {
-            await s3.send(new PutObjectCommand(params));
-            resolve({
-              statusCode: 200,
-              body: JSON.stringify({ message: "Private Image uploaded successfully", fileName }),
-            });
-          } catch (error) {
-            console.error("Error uploading private image:", error);
-            reject({
-              statusCode: 500,
-              body: JSON.stringify({ message: "Error uploading private image" }),
-            });
-          }
-        });
-      });
+//         file.on("end", async () => {
+//           const buffer = Buffer.concat(fileBuffer);
 
-      busboy.end(Buffer.from(event.body, "base64"));
-    });
-  } catch (error) {
-    console.error("Error processing private upload:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: "Error processing request" }),
-    };
-  }
-}
+//           const params = {
+//             Bucket: process.env.S3_BUCKET_NAME,
+//             Key: fileName,
+//             Body: buffer,
+//             ContentType: mimetype,
+//             ACL: "bucket-owner-full-control",  // adjust ACL if needed for private upload
+//           };
+
+//           try {
+//             await s3.send(new PutObjectCommand(params));
+//             resolve({
+//               statusCode: 200,
+//               body: JSON.stringify({ message: "Private Image uploaded successfully", fileName }),
+//             });
+//           } catch (error) {
+//             console.error("Error uploading private image:", error);
+//             reject({
+//               statusCode: 500,
+//               body: JSON.stringify({ message: "Error uploading private image" }),
+//             });
+//           }
+//         });
+//       });
+
+//       busboy.end(Buffer.from(event.body, "base64"));
+//     });
+//   } catch (error) {
+//     console.error("Error processing private upload:", error);
+//     return {
+//       statusCode: 500,
+//       body: JSON.stringify({ message: "Error processing request" }),
+//     };
+//   }
+// }
