@@ -84,7 +84,7 @@ async function parseWhoisData(whoisData, ips, urls, text) {
         creationDate: whoisData
             .match(/(Creation Date|Registered On): (.+)/i)?.[2]
             ?.trim(),  
-        IPAdress: ips,  // Default to ["none"] if no IPs found
+        IPAdress: ips,
         updatedDate: whoisData
             .match(/(Updated Date|Last Updated On): (.+)/i)?.[2]
             ?.trim(),   
@@ -139,57 +139,112 @@ function getUrlFromText(text) {
     return urls;
 }
 
+
 export const dataExtraction = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
+    // Handle CORS preflight request
+    if (event.httpMethod === "OPTIONS") {
+        return {
+            statusCode: 204,
+            headers: {
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                "Access-Control-Allow-Headers": "Content-Type",
+            },
+            body: "", // Empty body for preflight response
+        };
+    }
+
     try {
-        // Parse the body string to get the image data (this might be a string)
+        // Ensure event.body exists
+        if (!event.body) {
+            return {
+                statusCode: 400,
+                headers: {
+                    "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
+                body: JSON.stringify({ message: "Missing request body" }),
+            };
+        }
+
+        // Parse the request body
         const body = JSON.parse(event.body);
         console.log("Parsed body:", JSON.stringify(body, null, 2));
-        // Now extract the image field from the parsed body
-        const imageBase64 = body.image;  // This should be the base64 string
 
-        // If the image is base64-encoded, decode it into a buffer
+        const imageBase64 = body.image;
+        
+        // Ensure imageBase64 exists
+        if (!imageBase64) {
+            return {
+                statusCode: 400,
+                headers: {
+                    "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
+                body: JSON.stringify({ message: "Missing image data" }),
+            };
+        }
+
+        // Convert base64 image to buffer
         const imageBytes = Buffer.from(imageBase64, "base64");
 
-        // Proceed with image processing (extract text, URLs, WHOIS data, etc.)
+        // Process image text
         const text = await extractTextFromImage(imageBytes);
-        console.log(text);
+        console.log("Extracted text:", text);
+
+        // Extract URLs
         const urls = getUrlFromText(text);
+
+        // WHOIS lookup
         const whoisResults = [];
         for (const url of urls) {
             try {
                 const { whoisData, ips } = await getWhoisData(url);
-                const parsedWhoisData = await parseWhoisData(
-                    whoisData,
-                    ips,
-                    urls,
-                    text
-                );
-                whoisResults.push(parsedWhoisData);
+
+                // Ensure whoisData exists before parsing
+                if (whoisData) {
+                    const parsedWhoisData = await parseWhoisData(whoisData, ips, urls, text);
+                    whoisResults.push(parsedWhoisData);
+                } else {
+                    console.warn(`No WHOIS data found for ${url}`);
+                }
             } catch (error) {
                 console.error(`Failed to process ${url}:`, error);
             }
         }
-        console.log(whoisResults);
+
+        console.log("WHOIS Results:", whoisResults);
+
+        // Generate a unique image ID
         const imageId = uuidv4();
-        try {
-            const result = await saveToDynamoDB(imageId, whoisResults);
-            console.log(result);
-        } catch (error) {
-            console.error("Error saving to DynamoDB:", error);
-        }
+
+        // Save to DynamoDB and wait for result
+        const saveResult = await saveToDynamoDB(imageId, whoisResults);
+        console.log("DynamoDB Save Result:", saveResult);
 
         return {
             statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                "Access-Control-Allow-Headers": "Content-Type",
+            },
             body: JSON.stringify({ whoisData: whoisResults }),
         };
     } catch (error) {
         console.error("Error in handler:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: 'Error:', error: error.message }),
+            headers: {
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                "Access-Control-Allow-Headers": "Content-Type",
+            },
+            body: JSON.stringify({ message: "Error", error: error.message }),
         };
     }
-};
-
+}

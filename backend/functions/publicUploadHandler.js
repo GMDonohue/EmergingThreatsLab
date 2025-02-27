@@ -11,7 +11,9 @@ export const uploadImage = async (event) => {
         return {
             statusCode: 400,
             headers: {
-                'Access-Control-Allow-Origin': '*',
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",  // Adjust this to your frontend domain for security
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                "Access-Control-Allow-Headers": "Content-Type",
             },
             body: JSON.stringify({ message: 'No image data provided' }),
         };
@@ -32,7 +34,9 @@ export const uploadImage = async (event) => {
         return {
             statusCode: 200,
             headers: {
-                'Access-Control-Allow-Origin': '*',
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",  // Adjust this to your frontend domain for security
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                "Access-Control-Allow-Headers": "Content-Type",
             },
             body: JSON.stringify({
                 message: 'Image uploaded successfully',
@@ -44,7 +48,9 @@ export const uploadImage = async (event) => {
         return {
             statusCode: 500,
             headers: {
-                'Access-Control-Allow-Origin': '*',
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",  // Adjust this to your frontend domain for security
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                "Access-Control-Allow-Headers": "Content-Type",
             },
             body: JSON.stringify({ message: 'Error uploading image', error: error.message }),
         };

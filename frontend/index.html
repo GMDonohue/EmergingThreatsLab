@@ -20,27 +20,30 @@
     <script>
         document.getElementById('uploadForm').addEventListener('submit', async function (event) {
             event.preventDefault(); // Prevent page reload
-    
+
             const apiKey = document.getElementById('apiKey').value;
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
-    
-            if (file) {
-                const reader = new FileReader();
-    
-                reader.onloadend = async function () {
-                    const base64File = reader.result.split(',')[1]; // Extract base64 string
-    
-                    try {
-                        // Send both requests at the same time
-                        const [response1, response2] = await Promise.all([
+
+            if (!file) {
+                alert('Please select a file to upload');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = async function () {
+                const base64File = reader.result.split(',')[1]; // Extract base64 string
+
+                try {
+                    // Send both requests at the same time
+                    const [response1, response2] = await Promise.all([
                         fetch('https://u35ntvtwm0.execute-api.us-west-1.amazonaws.com/dev/upload', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'x-api-key': apiKey
                             },
-                            body: JSON.stringify({ imageData: base64File }),
+                            body: JSON.stringify({ image: base64File }),  // Ensure this matches API expectations
                         }),
                         fetch('https://u35ntvtwm0.execute-api.us-west-1.amazonaws.com/dev/dataExtraction', {
                             method: 'POST',
@@ -48,29 +51,34 @@
                                 'Content-Type': 'application/json',
                                 'x-api-key': apiKey
                             },
-                            body: JSON.stringify({ image: base64File })
+                            body: JSON.stringify({ image: base64File })  // Consistent key naming w/ above function
                         })
                     ]);
 
-                        // Convert responses to JSON
-                        const data1 = await response1.json();
-                        const data2 = await response2.json();
-    
-                        if (response1.ok && response2.ok) {
-                            alert('Both uploads successful');
-                        } else {
-                            throw new Error(`Upload failed: ${data1.message || data2.message}`);
-                        }
-                    } catch (error) {
-                        alert(error.message);
+                    const data1 = await response1.json();
+                    const data2 = await response2.json();
+
+                    // Handle failures
+                    if (!response1.ok) {
+                        throw new Error(`Upload failed: ${data1.message || 'Unknown error'}`);
                     }
-                };
-    
-                reader.readAsDataURL(file);
-            } else {
-                alert('Please select a file to upload');
-            }
+                    if (!response2.ok) {
+                        throw new Error(`Data extraction failed: ${data2.message || 'Unknown error'}`);
+                    }
+
+                    alert('Both uploads successful');
+                    console.log('Upload response:', data1);
+                    console.log('Data extraction response:', data2);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(error.message);
+                }
+            };
+
+            reader.readAsDataURL(file);
         });
+
     </script>
     
     
