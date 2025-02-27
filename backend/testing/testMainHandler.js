@@ -1,4 +1,4 @@
-const { handler } = require("./backend/functions/mainHandler");
+const { handler } = require("../functions/mainHandler");
 const fs = require("fs");
 const imageBase64 = fs.readFileSync("test.png", "base64");
 
