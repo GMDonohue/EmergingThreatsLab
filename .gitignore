@@ -3,3 +3,4 @@ node_modules
 whois.d.ts
 ztest*
 z_test*
+.serverless

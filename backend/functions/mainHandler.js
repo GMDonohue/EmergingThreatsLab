@@ -15,7 +15,7 @@ const textract = new TextractClient({ region: "us-west-1" });
 // Initializing DynamoDB client and wrapping it with DynamoDBDocumentClient for DocumentClient API
 const dynamoDb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-west-1" }));
 
-// const TABLE_NAME = process.env.DYNAMODB_TABLE_NAM; // Ensure you have this env variable set correctly
+// const TABLE_NAME = process.env.DYNAMODB_TABLE_NAM;
 
 // Helper functions
 async function extractTextFromImage(imageBytes) {
@@ -84,7 +84,7 @@ async function parseWhoisData(whoisData, ips, urls, text) {
         creationDate: whoisData
             .match(/(Creation Date|Registered On): (.+)/i)?.[2]
             ?.trim(),  
-        IPAdress: ips,
+        IPAddress: ips,
         updatedDate: whoisData
             .match(/(Updated Date|Last Updated On): (.+)/i)?.[2]
             ?.trim(),   
@@ -105,16 +105,22 @@ const dynamoParams = {
     TableName: "EmergingThreatsLabData",
     Item: {
         messageID: imageId,  // Unique identifier for this record
-        whoisData: whoisResults.length ? whoisResults.map(result => result.whoisData || "none") : ["none"], // Ensure array is not empty
-        ips: whoisResults.length ? whoisResults.map(result => result.IPAdress?.length ? result.IPAdress : ["none"]) : [["none"]], // Handle empty IP arrays
+        whoisData: whoisResults.length ? whoisResults.map(result => ({
+            name: result.name || "none",
+            nameServers: result.nameServers || ["none"],
+            registrar: result.registrar || "none",
+            creationDate: result.creationDate || "none",
+            updatedDate: result.updatedDate || "none",
+            ips: result.IPAddress?.length ? result.IPAddress : ["none"] // Include IPs inside whoisData
+        })) : [{ name: "none", nameServers: ["none"], registrar: "none", creationDate: "none", updatedDate: "none", ips: ["none"] }],
         urls: whoisResults.length ? whoisResults.map(result => result.urls?.length ? result.urls : ["none"]) : [["none"]], // Handle empty URL arrays
         text: whoisResults.length ? whoisResults.map(result => {
             console.log("Processing result rawText:", result.rawText);
             return result.rawText || "none";  // Ensure rawText is not undefined or null
         }) : ["none"], // Handle empty `whoisResults`
         timeSubmitted: new Date().toISOString(), // Timestamp
-    },
-};
+    }
+    };
 
         console.log("DynamoDB Params:", JSON.stringify(dynamoParams, null, 2)); // Debug log
 
