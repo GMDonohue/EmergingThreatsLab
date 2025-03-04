@@ -1,11 +1,11 @@
-import * as AWS from 'aws-sdk'; 
+import * as AWS from 'aws-sdk'; // Import the AWS SDK
 import whois from 'whois';
 import { v4 as uuidv4 } from 'uuid';
 
 
 // Importing the required services from the AWS SDK v3 packages
 import { TextractClient, DetectDocumentTextCommand } from "@aws-sdk/client-textract";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb"; // General DynamoDB Client
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb"; // General DynamoDB Client
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"; // For DocumentClient-like API
 import { PutCommand } from '@aws-sdk/lib-dynamodb'; 
 
@@ -14,6 +14,8 @@ const textract = new TextractClient({ region: "us-west-1" });
 
 // Initializing DynamoDB client and wrapping it with DynamoDBDocumentClient for DocumentClient API
 const dynamoDb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-west-1" }));
+const Db = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-west-1" }));
+
 
 // const TABLE_NAME = process.env.DYNAMODB_TABLE_NAM;
 
@@ -172,7 +174,7 @@ export const dataExtraction = async (event) => {
                     "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
                     "Access-Control-Allow-Headers": "Content-Type",
                 },
-                body: JSON.stringify({ message: "Missing request body" }),
+                body: JSON.stringify({ error: "Missing request body" })
             };
         }
 
@@ -250,7 +252,8 @@ export const dataExtraction = async (event) => {
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
                 "Access-Control-Allow-Headers": "Content-Type",
             },
-            body: JSON.stringify({ message: "Error", error: error.message }),
+            body: JSON.stringify({ error: "Internal server error" })
         };
     }
-}
+};
+

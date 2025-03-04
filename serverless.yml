@@ -59,6 +59,15 @@ functions:
           method: post
           cors: true
 
+
+  #getData: 
+   # handler: backend/functions/returnData.datahandler
+   # events:
+    #  - http:
+    #      path: getData
+     #     method: get
+      #    cors: true
+
 resources:
   Resources:
     # S3 bucket configuration
