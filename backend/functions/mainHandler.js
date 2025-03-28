@@ -5,6 +5,9 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { getWhoisData, parseWhoisData } from './whois.js';
+import { fetchRawHTML } from './fetchRawHTML.js';  
+import { extractVisibleText } from './extractVisibleText.js';  
+
 
 // DyanmoDB init
 const dynamoDb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-west-1" }));
@@ -91,8 +94,10 @@ export const dataExtraction = async (event) => {
         const { text, urlString } = await processImage(imageBase64)
         const urls = urlString.split(" ")
 
-        // WHOIS lookup
+        // WHOIS lookup + html parsing
         const whoisResults = [];
+        const rawHTML = [];
+        const filteredHTML = [];
         for (const url of urls) {
             try {
                 const { whoisData, ips } = await getWhoisData(url);
@@ -106,6 +111,19 @@ export const dataExtraction = async (event) => {
                 }
             } catch (error) {
                 console.error(`Failed to process ${url}:`, error);
+            }
+
+            try {
+                // Fetch raw HTML
+                const{rawHTMLData} = await fetchRawHTML(url);
+                rawHTML.push(rawHTMLData);
+                    
+                // Extract visible text from the raw HTML
+                const visibleText = extractVisibleText(rawHTMLData);
+                filteredHTML.push(visibleText);
+
+            }catch (error) {
+                console.error(`Failed to fetch or extract HTML for ${url}:`, error);
             }
         }
 

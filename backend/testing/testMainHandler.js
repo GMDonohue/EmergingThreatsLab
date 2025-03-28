@@ -1,12 +1,9 @@
 import { dataExtraction } from "../functions/mainHandler.js";
 import { getWhoisData } from "../functions/whois.js";
+import { encodeImageToBase64 } from "../functions/encodeImage.js";
 import fs from "fs";
 
-
-function encodeImageToBase64(imagePath) {
-    const imageBuffer = fs.readFileSync(imagePath);
-    return `data:image/png;base64,${imageBuffer.toString("base64")}`;
-}
+// Test the dataExtraction function
 const imageBase64 = encodeImageToBase64("backend/testing/3325.png");
 
 const event = {
