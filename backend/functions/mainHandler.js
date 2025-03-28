@@ -1,96 +1,17 @@
-import * as AWS from 'aws-sdk';
+// Description: This file contains the main handler function for the data extraction Lambda function.
+// It extracts text and URLs from an image, performs WHOIS lookups, fetches and processes HTML data, and saves the data to DynamoDB and S3.
 import { v4 as uuidv4 } from 'uuid';
 import processImage from "./llm.js";
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { getWhoisData, parseWhoisData } from './whois.js';
 import { fetchRawHTML } from './fetchRawHTML.js';  
 import { extractVisibleText } from './extractVisibleText.js';  
-
+import { saveHTMLToS3, saveToDynamoDB } from './s3DynamoUtils.js';
 
 // DyanmoDB init
 const dynamoDb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-west-1" }));
 const Db = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-west-1" }));
-
-
-async function saveHTMLToS3(messageId, rawHTML, filteredHTML) {
-    try {
-        // Create separate keys for raw and filtered HTML
-        const rawHTMLKey = `raw-html/${messageId}.html`;
-        const filteredHTMLKey = `filtered-html/${messageId}.txt`;
-
-        // S3 upload params for raw HTML
-        const rawHTMLParams = {
-            Bucket: "emerging-threats-html-bucket",
-            Key: rawHTMLKey,
-            Body: rawHTML,
-            ContentType: "text/html"
-        };
-
-        // S3 upload params for filtered HTML
-        const filteredHTMLParams = {
-            Bucket: "emerging-threats-html-bucket",
-            Key: filteredHTMLKey,
-            Body: filteredHTML,
-            ContentType: "text/plain"
-        };
-
-        // Upload raw HTML
-        const rawHTMLCommand = new PutObjectCommand(rawHTMLParams);
-        await s3Client.send(rawHTMLCommand);
-
-        // Upload filtered HTML
-        const filteredHTMLCommand = new PutObjectCommand(filteredHTMLParams);
-        await s3Client.send(filteredHTMLCommand);
-
-        // Return S3 object locations for DynamoDB reference
-        return {
-            rawHTMLLocation: `s3://emerging-threats-html-bucket/${rawHTMLKey}`,
-            filteredHTMLLocation: `s3://emerging-threats-html-bucket/${filteredHTMLKey}`
-        };
-    } catch (error) {
-        console.error("Error saving HTML to S3:", error);
-        throw error;
-    }
-}
-
-// Modified saveToDynamoDB function to include S3 locations
-async function saveToDynamoDB(imageId, whoisResults, imageText, htmlLocations) {
-    try {
-        // Prepare data for DynamoDB
-        const dynamoParams = {
-            TableName: "EmergingThreatsLabData",
-            Item: {
-                messageID: imageId,
-                whoisData: whoisResults.length ? whoisResults.map(result => ({
-                    name: result.name || "none",
-                    nameServers: result.nameServers || ["none"],
-                    registrar: result.registrar || "none",
-                    creationDate: result.creationDate || "none",
-                    updatedDate: result.updatedDate || "none",
-                    ips: result.IPAddress?.length ? result.IPAddress : ["none"]
-                })) : [{ name: "none", nameServers: ["none"], registrar: "none", creationDate: "none", updatedDate: "none", ips: ["none"] }],
-                urls: whoisResults.length ? whoisResults.map(result => result.urls?.length ? result.urls : ["none"]) : [["none"]],
-                text: imageText || "",
-                // Add S3 HTML locations to DynamoDB record
-                htmlLocations: htmlLocations || {
-                    rawHTMLLocation: "none",
-                    filteredHTMLLocation: "none"
-                },
-                timeSubmitted: new Date().toISOString(),
-            }
-        };
-
-        const command = new PutCommand(dynamoParams);
-        await dynamoDb.send(command);
-
-        return { success: true, imageId };
-    } catch (error) {
-        console.error("Error saving to DynamoDB:", error);
-        throw error;
-    }
-}
 
 export const dataExtraction = async (event) => {
     // Handle CORS preflight request
