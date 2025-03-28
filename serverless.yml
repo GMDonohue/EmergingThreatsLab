@@ -8,6 +8,7 @@ provider:
   environment:
     DYNAMODB_TABLE_NAME: EmergingThreatsLabData
     S3_BUCKET_NAME: emerging-threats-image-bucket
+    HTML-S3-BUCKET_NAME: emerging-threats-html-bucket
   apiGateway:
     binaryMediaTypes:
       - multipart/form-data
@@ -84,8 +85,7 @@ resources:
                 - PUT
                 - POST
               AllowedHeaders:
-                - "*"
-
+                - "*"              
     UploadsS3BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
@@ -99,6 +99,34 @@ resources:
                 - s3:PutObject
                 - s3:GetObject
               Resource: "arn:aws:s3:::emerging-threats-image-bucket/*"
+    # S3 bucket for HTML storage
+    HTMLS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: emerging-threats-html-bucket
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+              AllowedHeaders:
+                - "*"
+    HTMLS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: emerging-threats-html-bucket
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: arn:aws:iam::688567304941:role/smishing-archiving-api-dev-us-west-1-lambdaRole
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+              Resource: "arn:aws:s3:::emerging-threats-html-bucket/*"
     
     # # The API Key and Usage Plan are managed by Serverless
     # ApiGatewayApiKey:
