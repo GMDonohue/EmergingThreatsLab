@@ -32,6 +32,8 @@ provider:
             - arn:aws:dynamodb:us-west-1:*:table/EmergingThreatsLabData
             - arn:aws:s3:::emerging-threats-image-bucket
             - arn:aws:s3:::emerging-threats-image-bucket/*
+            - arn:aws:s3:::emerging-threats-html-bucket
+            - arn:aws:s3:::emerging-threats-html-bucket/*
 
 functions:
   dataExtractionHandler:
