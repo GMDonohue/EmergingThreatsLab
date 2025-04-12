@@ -35,6 +35,8 @@ export default async function processImage(base64Image) {
         }
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error processing image:", error);
+        console.error("Error details:", error.response ? error.response.data : error.message);
+        throw new Error("Failed to process image with OpenAI API.");
     }
 }

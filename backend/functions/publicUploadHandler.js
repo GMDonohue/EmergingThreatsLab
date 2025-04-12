@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk'; 
+import AWS from 'aws-sdk'; // ES module import for aws-sdk
 const s3 = new AWS.S3();
 
 export const uploadImage = async (event) => {
@@ -11,7 +11,7 @@ export const uploadImage = async (event) => {
         return {
             statusCode: 400,
             headers: {
-                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",  // Adjust this to your frontend domain for security
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
                 "Access-Control-Allow-Headers": "Content-Type",
             },
@@ -34,7 +34,7 @@ export const uploadImage = async (event) => {
         return {
             statusCode: 200,
             headers: {
-                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",  // Adjust this to your frontend domain for security
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
                 "Access-Control-Allow-Headers": "Content-Type",
             },
@@ -48,7 +48,7 @@ export const uploadImage = async (event) => {
         return {
             statusCode: 500,
             headers: {
-                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",  // Adjust this to your frontend domain for security
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
                 "Access-Control-Allow-Headers": "Content-Type",
             },

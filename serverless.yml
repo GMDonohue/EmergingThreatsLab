@@ -34,52 +34,68 @@ provider:
             - arn:aws:s3:::emerging-threats-image-bucket/*
             - arn:aws:s3:::emerging-threats-html-bucket
             - arn:aws:s3:::emerging-threats-html-bucket/*
+plugins:
+  - serverless-s3-sync
+custom:
+  s3Sync:
+    - bucketName: emergingthreats-frontend-bucket
+      localDir: frontend
+      deleteRemoved: true
 package:
   exclude:
-    - node_modules/**
     - .git/**
+    - .vscode/**
     - tests/**
     - '*.md'
+    - '*.log'
+    - node_modules/aws-sdk/** # AWS SDK is included in the Lambda runtime
+    - node_modules/** # Exclude all node_modules to reduce package size
+    - dist/node_modules/** # Exclude bundled node_modules
+    - dist/tests/** # Exclude test files from the bundled output
+    - frontend/** # Exclude frontend files if not needed in Lambda
+    - backend/tests/** # Exclude test files
+    - node_modules/@aws-sdk/** # AWS SDK v3 is included in the Lambda runtime
+    - node_modules/tesseract.js/** 
+    - node_modules/openai/** 
+    - node_modules/jsdom/** 
+    - backend/testing/** # Exclude testing files
+    - AWSCLIV2.pkg
   include:
     - dist/**
     - backend/functions/**'
     - frontend/**
     - serverless.yml
+
+
 functions:
   dataExtractionHandler:
-    handler: backend/functions/mainHandler.dataExtraction
+    handler: dist/mainHandler.dataExtraction # Bundled file for dataExtractionHandler
+    layers: arn:aws:lambda:us-west-1:688567304941:layer:finalLayer:1
     events:
       - http:
           path: dataExtraction
           method: post
-          cors: true
-          private: true
+          cors:
+            origin: "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com"
+            headers:
+              - Content-Type
+              - X-Api-Key
+
+            allowCredentials: false
 
   uploadHandler:
-    handler: backend/functions/publicUploadHandler.uploadImage
+    handler: dist/publicUploadHandler.uploadImage # Bundled file for uploadHandler
+    layers: arn:aws:lambda:us-west-1:688567304941:layer:finalLayer:1
     events:
       - http:
           path: upload
           method: post
-          cors: true
-          private: true
-
-  privateUploadHandler:
-    handler: backend/functions/privateUploadHandler.uploadImage
-    events:
-      - http:
-          path: private-upload
-          method: post
-          cors: true
-
-
-  #getData: 
-   # handler: backend/functions/returnData.datahandler
-   # events:
-    #  - http:
-    #      path: getData
-     #     method: get
-      #    cors: true
+          cors:
+            origin: "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com"
+            headers:
+              - Content-Type
+              - X-Api-Key
+            allowCredentials: false
 
 resources:
   Resources:
@@ -170,3 +186,12 @@ resources:
     #     KeyId: !Ref ApiGatewayApiKey
     #     KeyType: API_KEY
     #     UsagePlanId: !Ref ApiGatewayUsagePlan
+
+  # privateUploadHandler:
+  #   handler: backend/functions/privateUploadHandler.uploadImage
+  #   events:
+  #     - http:
+  #         path: private-upload
+  #         method: post
+  #         cors: true
+

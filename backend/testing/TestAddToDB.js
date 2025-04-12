@@ -1,4 +1,4 @@
- const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
 // Create DynamoDB Client
 const client = new DynamoDBClient({ region: "us-west-1" });

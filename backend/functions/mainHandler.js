@@ -20,29 +20,75 @@ export const dataExtraction = async (event) => {
             statusCode: 204,
             headers: {
                 "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-                "Access-Control-Allow-Headers": "Content-Type",
             },
             body: "", // Empty body for preflight response
         };
     }
 
     try {
-        // Ensure event.body exists
+        // Extract headers
+        console.log("Received event:", JSON.stringify(event, null, 2));
+        console.log("Headers:", JSON.stringify(event.headers, null, 2));
+        const headers = event.headers || {};
+        const apiKey = headers['x-api-key'];
+        const contentType = headers['Content-Type'] || headers['content-type'];
+
+        // Validate API key
+        if (!apiKey) {
+            return {
+                statusCode: 401,
+                headers: {
+                    "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                    "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
+                    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                },
+                body: JSON.stringify({ error: "Missing API key" }),
+            };
+        }
+
+        // Validate Content-Type
+        if (contentType !== "application/json") {
+            return {
+                statusCode: 400,
+                headers: {
+                "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+            },
+                body: JSON.stringify({ error: "Invalid Content-Type. Expected application/json" }),
+            };
+        }
+
+        // Ensure event.body exists and is valid JSON
         if (!event.body) {
             return {
                 statusCode: 400,
                 headers: {
                     "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                    "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
                     "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-                    "Access-Control-Allow-Headers": "Content-Type",
                 },
-                body: JSON.stringify({ error: "Missing request body" })
+                body: JSON.stringify({ error: "Missing request body" }),
             };
         }
 
-        // Parse the request body
-        const body = JSON.parse(event.body);
+        let body;
+        try {
+            body = JSON.parse(event.body);
+        } catch (error) {
+            return {
+                statusCode: 400,
+                headers: {
+                    "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                    "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
+                    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+                },
+                body: JSON.stringify({ error: "Invalid JSON in request body" }),
+            };
+        }
+
         const imageBase64 = body.image;
 
         // Ensure imageBase64 exists
@@ -51,19 +97,19 @@ export const dataExtraction = async (event) => {
                 statusCode: 400,
                 headers: {
                     "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                    "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
                     "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-                    "Access-Control-Allow-Headers": "Content-Type",
                 },
-                body: JSON.stringify({ message: "Missing image data" }),
+                body: JSON.stringify({ error: "Missing image data" }),
             };
         }
 
         // Generate a unique image ID
         const imageId = uuidv4();
 
-        // Extract text and urls with LLM
-        const { imageText, urlString } = await processImage(imageBase64)
-        const urls = urlString.split(" ")
+        // Extract text and URLs with LLM
+        const { imageText, urlString } = await processImage(imageBase64);
+        const urls = urlString.split(" ");
 
         const whoisResults = [];
         const htmlDataArray = [];
@@ -75,20 +121,19 @@ export const dataExtraction = async (event) => {
                     const parsedWhoisData = await parseWhoisData(whoisData, ips, urls);
                     whoisResults.push(parsedWhoisData);
                 }
-        
+
                 // Fetch and process HTML
                 const rawHTMLData = await fetchRawHTML(url);
                 const filteredHTMLText = await extractVisibleText(url);
-        
+
                 // Save HTML to S3
                 const htmlLocations = await saveHTMLToS3(imageId, rawHTMLData, filteredHTMLText);
-        
+
                 // Collect HTML data (optional, for debugging or logging purposes)
                 htmlDataArray.push({
                     url,
-                    htmlLocations // Only store S3 locations
+                    htmlLocations, // Only store S3 locations
                 });
-        
             } catch (error) {
                 console.error(`Failed to process ${url}:`, error);
             }
@@ -98,15 +143,15 @@ export const dataExtraction = async (event) => {
         await saveToDynamoDB(imageId, {
             whoisResults,
             imageText,
-            htmlDataArray
+            htmlDataArray,
         });
 
         return {
             statusCode: 200,
             headers: {
                 "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-                "Access-Control-Allow-Headers": "Content-Type",
             },
             body: JSON.stringify({ whoisData: whoisResults }),
         };
@@ -116,10 +161,10 @@ export const dataExtraction = async (event) => {
             statusCode: 500,
             headers: {
                 "Access-Control-Allow-Origin": "https://emergingthreats-frontend-bucket.s3.us-west-1.amazonaws.com",
+                "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
                 "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-                "Access-Control-Allow-Headers": "Content-Type",
             },
-            body: JSON.stringify({ error: "Internal server error" })
+            body: JSON.stringify({ error: "Internal server error" }),
         };
     }
 };

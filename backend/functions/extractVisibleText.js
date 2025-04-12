@@ -4,7 +4,12 @@ import { fetchRawHTML } from './fetchRawHTML.js';
 async function extractVisibleText(url) {
     try {
         const html = await fetchRawHTML(url);
-        const dom = new JSDOM(html);
+
+        // Configure JSDOM to work without canvas
+        const dom = new JSDOM(html, {
+            pretendToBeVisual: true, // Simulates a visual browser environment
+        });
+
         const document = dom.window.document;
 
         // Remove unwanted elements
@@ -25,7 +30,5 @@ async function extractVisibleText(url) {
         throw error;
     }
 }
-
-
 
 export { extractVisibleText };

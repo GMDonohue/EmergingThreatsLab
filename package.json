@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js"
   },
   "keywords": [],
   "author": "",
@@ -15,12 +16,15 @@
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/client-textract": "^3.750.0",
     "@aws-sdk/lib-dynamodb": "^3.751.0",
+    "@babel/runtime": "^7.27.0",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.8.4",
+    "bufferutil": "^4.0.9",
     "dotenv": "^16.4.7",
     "env": "^0.0.2",
     "express": "^4.21.2",
     "express.js": "^1.0.0",
+    "got": "^14.4.7",
     "jsdom": "^26.0.0",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
@@ -28,10 +32,18 @@
     "s3": "^4.4.0",
     "tesseract.js": "^6.0.0",
     "textract": "^2.5.0",
+    "utf-8-validate": "^6.0.5",
     "uuid": "^11.1.0",
     "whois": "^2.14.2"
   },
   "devDependencies": {
-    "aws-sdk-client-mock": "^4.1.0"
+    "@babel/core": "^7.26.10",
+    "@babel/plugin-transform-runtime": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
+    "aws-sdk-client-mock": "^4.1.0",
+    "babel-loader": "^10.0.0",
+    "serverless-s3-sync": "^3.4.0",
+    "webpack": "^5.99.5",
+    "webpack-cli": "^6.0.1"
   }
 }

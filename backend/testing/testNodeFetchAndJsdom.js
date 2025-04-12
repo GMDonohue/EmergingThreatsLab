@@ -13,7 +13,10 @@ async function testNodeFetchAndJsdom() {
         const html = await response.text();
 
         // Parse the HTML using jsdom
-        const dom = new JSDOM(html);
+        const dom = new JSDOM(html, {
+            pretendToBeVisual: true, // Simulates a visual browser environment
+        });
+
         const document = dom.window.document;
 
         // Extract the title of the webpage as a simple test
