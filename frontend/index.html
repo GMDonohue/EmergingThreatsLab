@@ -167,6 +167,22 @@
                 }
                 resultItem.appendChild(nameServers);
 
+                //Display Certificates
+                const certificates = document.createElement('div');
+                certificates.innerHTML = `<p>Certificates:</p>`;
+                if (item.certificates && item.certificates.length > 0) {
+                    const certList = document.createElement('ul');
+                    item.certificates.forEach(cert => {
+                        const certItem = document.createElement('li');
+                        certItem.textContent = cert;
+                        certList.appendChild(certItem);
+                    });
+                    certificates.appendChild(certList);
+                } else {
+                    certificates.innerHTML += '<p>N/A</p>';
+                }
+                resultItem.appendChild(certificates);
+
                 resultsDiv.appendChild(resultItem);
             });
         }
