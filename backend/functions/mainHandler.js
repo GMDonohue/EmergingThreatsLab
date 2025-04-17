@@ -134,6 +134,21 @@ export const dataExtraction = async (event) => {
                     url,
                     htmlLocations, // Only store S3 locations
                 });
+
+                //certificate extraction
+                try {
+                    const hostname = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+                    const sslCert = await getSSLCertificate(hostname);
+                    parsedWhoisData.sslCertificate = sslCert;
+                } catch (certError) {
+                    console.error(`SSL cert fetch failed for ${url}:`, certError);
+                    parsedWhoisData.sslCertificate = {
+                        error: "Certificate unavailable",
+                        details: certError.message
+                    };
+                }
+
+                
             } catch (error) {
                 console.error(`Failed to process ${url}:`, error);
             }
@@ -167,5 +182,8 @@ export const dataExtraction = async (event) => {
             body: JSON.stringify({ error: "Internal server error" }),
         };
     }
+
+
+
 };
 
