@@ -1,37 +1,42 @@
-import fetch from 'node-fetch';
+import tls from 'tls';
 
-async function getCertificate(url) {
+export function getSSLCertificate(domain, port = 443) {
+  return new Promise((resolve, reject) => {
+    const timeout = 10000; // 10 second timeout
+    const socket = tls.connect(port, domain, { servername: domain });
+    let timeoutId;
 
-  try {
-    const response = await fetch(`https://${url}`, { 
-      method: 'HEAD',
-      agent: new (require('https').Agent)({ 
-        rejectUnauthorized: false,
-        timeout: 5000 
-      })
+    // Set connection timeout
+    timeoutId = setTimeout(() => {
+      socket.destroy();
+      reject(new Error(`Connection timeout for ${domain}`));
+    }, timeout);
+
+    socket.once('secureConnect', () => {
+      clearTimeout(timeoutId);
+      const cert = socket.getPeerCertificate(true);
+      
+      if (cert) {
+        const certInfo = {
+          subject: cert.subject,
+          issuer: cert.issuer,
+          validFrom: cert.valid_from,
+          validTo: cert.valid_to,
+          fingerprint: cert.fingerprint,
+          serialNumber: cert.serialNumber
+        };
+        socket.end();
+        resolve(certInfo);
+      } else {
+        socket.end();
+        reject(new Error(`No certificate retrieved from ${domain}`));
+      }
     });
 
-    const cert = response.socket.getPeerCertificate();
-    return {
-      issuer: cert.issuer,
-      validFrom: cert.valid_from,
-      validTo: cert.valid_to,
-      subject: cert.subject,
-      serialNumber: cert.serialNumber
-    };
-  } catch (error) {
-    console.error(`Certificate fetch failed for ${url}:`, error);
-    return null;
-  }
-}
-
-// Add to whoisData
-for (const url of urls) {
-  const whoisData = await getWhoisData(url);
-  const sslCert = await getCertificate(new URL(url).hostname);
-
-  whoisResults.push({
-    ...parseWhoisData(whoisData.whoisData, whoisData.ips, urls, text),
-    sslCertificate: sslCert
+    socket.on('error', (err) => {
+      clearTimeout(timeoutId);
+      socket.destroy();
+      reject(err);
+    });
   });
 }
